@@ -1,0 +1,20 @@
+import { ESPConnection } from './ESPConnection';
+import EventEmitter from 'events';
+test('explicit reconnect preserves client identity, encryption and existing listeners', async () => {
+  const c: any = new EventEmitter();
+  c.host = '127.0.0.1';
+  c.port = 6053;
+  c.password = '';
+  c.encryptionKey = 'retained';
+  c.reconnect = true;
+  c.frameHelper = { destroy: jest.fn(() => setImmediate(() => c.emit('smartbed.ready'))) };
+  c.disconnect = jest.fn();
+  const listener = () => {};
+  c.on('message.BluetoothGATTNotifyDataResponse', listener);
+  const esp = new ESPConnection([c]);
+  await esp.reconnect();
+  expect((esp as any).connections[0]).toBe(c);
+  expect(c.disconnect).not.toHaveBeenCalled();
+  expect(c.listenerCount('message.BluetoothGATTNotifyDataResponse')).toBe(1);
+  expect(c.listenerCount('smartbed.ready')).toBe(0);
+});

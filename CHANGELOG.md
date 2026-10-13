@@ -1,3 +1,10 @@
+## 1.1.24
+
+- Keep one MQTT and ESPHome client alive across startup outages and runtime disconnects; retry indefinitely every 10 seconds without watchdog restarts.
+- Preserve ESPHome encryption settings, BLE references, listeners and discovery subscriptions on reconnect.
+- Create separate stable Home Assistant persistent notifications for MQTT endpoints and ESPHome proxy IPs; automatically dismiss on recovery and retry notification delivery without crashing or logging credentials.
+- Make MQTT service discovery optional so an unavailable broker does not block add-on startup.
+
 ## v1.1.22
 
 **New Features**

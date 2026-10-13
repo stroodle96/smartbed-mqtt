@@ -2,7 +2,6 @@ import { Connection } from '@2colors/esphome-native-api';
 import { Deferred } from '@utils/deferred';
 import { logInfo, logWarn } from '@utils/logger';
 import { IESPConnection } from './IESPConnection';
-import { connect } from './connect';
 import { BLEAdvertisement } from './types/BLEAdvertisement';
 import { BLEDevice } from './types/BLEDevice';
 import { IBLEDevice } from './types/IBLEDevice';
@@ -10,14 +9,28 @@ import { IBLEDevice } from './types/IBLEDevice';
 export class ESPConnection implements IESPConnection {
   constructor(private connections: Connection[]) {}
 
-  async reconnect(): Promise<void> {
-    this.disconnect();
+  private reconnecting?: Promise<void>;
+
+  reconnect(): Promise<void> {
+    if (this.reconnecting) return this.reconnecting;
     logInfo('[ESPHome] Reconnecting...');
-    this.connections = await Promise.all(
-      this.connections.map((connection) =>
-        connect(new Connection({ host: connection.host, port: connection.port, password: connection.password }))
+    this.reconnecting = Promise.all(
+      this.connections.map(
+        (connection) =>
+          new Promise<void>((resolve) => {
+            connection.once('smartbed.ready' as any, () => resolve());
+            // Do not use disconnect(): the native API deliberately removes all
+            // listeners and disables retries there. Closing the transport preserves
+            // encryption configuration, BLE references and the native retry timer.
+            (connection as any).frameHelper.destroy();
+          })
       )
-    );
+    )
+      .then(() => {})
+      .finally(() => {
+        this.reconnecting = undefined;
+      });
+    return this.reconnecting;
   }
 
   disconnect(): void {

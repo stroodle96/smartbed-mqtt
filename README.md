@@ -328,3 +328,15 @@ Initial prototyping was only possible due to assistance from Murp on Discord.
 # Support
 
 For help with setup, or for sharing feedback please join the Discord server https://discord.gg/Hf3kpFjbZs
+
+## Connection outages (fork version 1.1.24)
+
+MQTT and ESPHome retry indefinitely every 10 seconds, including startup outages. Clients and BLE references are retained, so reconnects do not duplicate bed entities or listeners. Active discovery subscriptions are restored after authorization. Stalled ESPHome transports are closed after 30 seconds without traffic; normal API pings run every 15 seconds.
+
+The Home Assistant add-on uses the documented Supervisor Core API proxy with homeassistant_api enabled and the SUPERVISOR_TOKEN bearer token. Persistent notifications distinguish MQTT versus ESPHome and include the endpoint and configured proxy IP/host. Stable IDs prevent spam; recovery dismisses the alert. Delivery failures retry every 10 seconds and never crash the app or expose credentials. Standalone runs without SUPERVISOR_TOKEN disable notifications.
+
+Failed bed movement commands must be deliberately retriggered after recovery; they are not automatically replayed. Async command failures are logged without terminating the process. Watchdog restarts are not required for connection recovery.
+
+Tests: yarn test:ci --runInBand; node --test tests/esphome-handshake.cjs; yarn build:ci. Network regressions use local TCP MQTT/ESPHome peers and local HTTP service endpoints, not the shared broker or physical bed.
+
+Rollback source: 185c7e1719a5c124322195d631f09e0c35bb754e (add-on 1.1.23).

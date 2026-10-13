@@ -1,6 +1,6 @@
 {
   "name": "Smartbed MQTT (ESPHome fix)",
-  "version": "1.1.23",
+  "version": "1.1.24",
   "slug": "smartbed-mqtt",
   "description": "A Home Assistant add-on to enable controlling smart beds.",
   "url": "https://github.com/stroodle96/smartbed-mqtt",
@@ -14,7 +14,7 @@
   ],
   "boot": "auto",
   "services": [
-    "mqtt:need"
+    "mqtt:want"
   ],
   "host_network": true,
   "options": {
@@ -228,5 +228,6 @@
         "pair": "bool?"
       }
     ]
-  }
+  },
+  "homeassistant_api": true
 }
